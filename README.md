@@ -18,9 +18,9 @@ Web service for MuLan-Methyl is present at: http://ab.cs.uni-tuebingen.de/softwa
 ## Get started
 
 ### 1. Configuration
-Download MuLan-Methyl from the github repository with GIit Large File Storage ([LFS](https://github.com/git-lfs/git-lfs)) command.
+Download MuLan-Methyl from the github repository.
     
-    git lfs clone https://github.com/husonlab/mulan-methyl.git
+    git clone https://github.com/husonlab/mulan-methyl.git
     cd mulan-methyl
 
 The needed data is stored in data.zip, with structure
