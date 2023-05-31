@@ -16,23 +16,71 @@ Web service for MuLan-Methyl is present at: http://ab.cs.uni-tuebingen.de/softwa
 ![image](img/MuLan-Methyl_workflow.jpg) 
 
 ## Get started
+
 ### 1. Configuration
 Download MuLan-Methyl from the github repository.
     
-    git lfs clone https://github.com/husonlab/mulan-methyl.git
+    git clone https://github.com/husonlab/mulan-methyl.git
     cd mulan-methyl
 
-We recommand you to run MuLan-Methyl in a python virtual environemnt that built by Anaconda, build a new conda enviroment equipped with required packages.
+The needed data is stored in data.zip, with structure
+```
+├── benchmark
+│   ├── example_data_processing
+│   │   ├── test_set.tsv
+│   │   └── train_set.tsv
+│   ├── initial_dataset
+│   │   ├── 4mC_C.equisetifolia
+│   │   ├── 4mC_F.vesca
+│   │   ├── 4mC_S.cerevisiae
+│   │   ├── 4mC_Tolypocladium
+│   │   ├── 5hmC_H.sapiens
+│   │   ├── 5hmC_M.musculus
+│   │   ├── 6mA_A.thaliana
+│   │   ├── 6mA_C.elegans
+│   │   ├── 6mA_C.equisetifolia
+│   │   ├── 6mA_D.melanogaster
+│   │   ├── 6mA_F.vesca
+│   │   ├── 6mA_H.sapiens
+│   │   ├── 6mA_R.chinensis
+│   │   ├── 6mA_S.cerevisiae
+│   │   ├── 6mA_T.thermophile
+│   │   ├── 6mA_Tolypocladium
+│   │   └── 6mA_Xoc BLS256
+│   └── processed_dataset
+│       ├── test
+│       │   ├── processed_4mC.tsv
+│       │   ├── processed_5hmC.tsv
+│       │   └── processed_6mA.tsv
+│       └── train
+│           ├── processed_4mC.tsv
+│           ├── processed_5hmC.tsv
+│           └── processed_6mA.tsv
+├── taxonomy
+│   ├── ncbi_gtdb_processed.csv
+│   └── species_name_mapped.csv
+```
+
+We recommand you to run MuLan-Methyl in a python virtual environemnt that built by [Anaconda](https://docs.anaconda.com/free/anaconda/install/index.html), build a new conda enviroment equipped with required packages.
 
     conda env create -n mulan-methyl --file MuLan.yaml
     conda activate mulan-methyl
 
-### 2. Fine-tuning
+
+### 2. Data processing (Skip this step if fine-tuning on iDNA-MS dataset which is used in our paper)
+Input of MuLan-methyl is a sentence contains DNA seuqence and description of sample's taxonomic lineage. The following command give an example for processesing DNA sequence to the required format.
+
+    python code/main.py \
+            --data_proc \
+            --input_file ./data/benchmark/example_data_processing/train.tsv \
+            --data_type tsv \
+            --labelled
+### 3. Fine-tuning
 MuLan-Methyl contains three methylation-site type-wise prediction models, where 6mA prediction model ensemble five transformer-based language model, each is fine-tuned on the corresponding pretrained language model, sub-models of 4mC prediction model is fine-tuned on the 6mA fine-tuned models, similarly, sub-models of 5hmC prediction model is fine-tuned on the 4mC fine-tuned models.
 
 Fine-tuning MuLan-Methyl for each methylation site by passing variable name 6mA, 4mC, 5hmC to argument methy_type, respectively.
 
-This command give an example of fine-tuning MuLan-Methyl for identifying 6mA methylation site.
+This command give an example of fine-tuning MuLan-Methyl for identifying 6mA methylation site on the processed dataset.
 
     python code/main.py \
             --finetune \
@@ -42,7 +90,8 @@ This command give an example of fine-tuning MuLan-Methyl for identifying 6mA met
             --finetuned_output_dir ./pretrained_model
 
 
-### 3. Methylation status prediction
+### 4. Methylation status prediction
+
 
 
 ## Publication 
