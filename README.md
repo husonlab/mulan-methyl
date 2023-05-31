@@ -16,23 +16,30 @@ Web service for MuLan-Methyl is present at: http://ab.cs.uni-tuebingen.de/softwa
 ![image](img/MuLan-Methyl_workflow.jpg) 
 
 ## Get started
+
 ### 1. Configuration
-Download MuLan-Methyl from the github repository.
+Download MuLan-Methyl from the github repository with GIit Large File Storage ([LFS](https://github.com/git-lfs/git-lfs)) command.
     
     git lfs clone https://github.com/husonlab/mulan-methyl.git
     cd mulan-methyl
 
-We recommand you to run MuLan-Methyl in a python virtual environemnt that built by Anaconda, build a new conda enviroment equipped with required packages.
+The needed data is stored in data.zip, with structure
+
+We recommand you to run MuLan-Methyl in a python virtual environemnt that built by [Anaconda](https://docs.anaconda.com/free/anaconda/install/index.html), build a new conda enviroment equipped with required packages.
 
     conda env create -n mulan-methyl --file MuLan.yaml
     conda activate mulan-methyl
 
-### 2. Fine-tuning
+
+### 3. Data processing (Skip this step if fine-tuning on iDNA-MS dataset which is used in our paper)
+Input of MuLan-methyl is a sentence contains DNA seuqence and description of sample's taxonomic lineage. The following command processes DNA sequence to the required format.
+
+### 4. Fine-tuning
 MuLan-Methyl contains three methylation-site type-wise prediction models, where 6mA prediction model ensemble five transformer-based language model, each is fine-tuned on the corresponding pretrained language model, sub-models of 4mC prediction model is fine-tuned on the 6mA fine-tuned models, similarly, sub-models of 5hmC prediction model is fine-tuned on the 4mC fine-tuned models.
 
 Fine-tuning MuLan-Methyl for each methylation site by passing variable name 6mA, 4mC, 5hmC to argument methy_type, respectively.
 
-This command give an example of fine-tuning MuLan-Methyl for identifying 6mA methylation site.
+This command give an example of fine-tuning MuLan-Methyl for identifying 6mA methylation site on the processed dataset.
 
     python code/main.py \
             --finetune \
@@ -43,6 +50,7 @@ This command give an example of fine-tuning MuLan-Methyl for identifying 6mA met
 
 
 ### 3. Methylation status prediction
+
 
 
 ## Publication 
