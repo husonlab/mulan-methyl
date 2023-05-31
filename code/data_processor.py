@@ -66,9 +66,9 @@ class DataProcesser(object):
 
 
     # get sample's lineage
-    def get_lineage(self, x, curPath):
+    def get_lineage(self, x):
         # load taxonomy file
-        df_taxonomy = pd.read_csv(f'{curPath}/data/taxonomy/ncbi_gtdb_processed.csv', low_memory=False) #2190288
+        df_taxonomy = pd.read_csv('./data/taxonomy/ncbi_gtdb_processed.csv', low_memory=False) #2190288
         tmp_df = df_taxonomy[df_taxonomy['species']==x][['species', 'genus', 'family', 'order', 'class', 'phylum', 'kingdom', 'domain']]
         if len(tmp_df) >= 1:
             tmp_df.reset_index(drop=True, inplace=True)
@@ -86,68 +86,40 @@ class DataProcesser(object):
         description = f'{sentence4seq}. {sentence4tax}.'
         return description
 
-    def data_loader(self, curPath, dataPath, varType, varSpecies, methyType, customSpecies=False, developer=False, customLength=False):
-        '''
-        curPath: current path(project path)
-        dataPath: relative path of data
-        varType: data type, fasta or txt
-        varSpecies: species that dataset belongs to
-        methyType: methylation site type, 6mA, 4mC or 5hmC
-        customSpecies: species is not belongs to iDNA-MS, H.sapiens for False, s__Homo sapiens for True
-        developer: the input data has label, for developer testing code
-        customLength: if the input length is longer than 41
-        return: dataset contains sentence
-        '''
+    def data_loader(self, dataPath, dataType, customSpecies=False, labelled=True):
         if customSpecies == False:
             species_mapped = pd.read_csv(f'{curPath}/data/taxonomy/species_name_mapped.csv')
             species_mapped_dict = dict(zip(species_mapped['abbre_species'], species_mapped['full_species']))
             # apply long species name to initial dataset
             varSpecies = species_mapped_dict[varSpecies]
-        taxonomy_lineage = self.get_lineage(varSpecies, curPath)
-        if varType == 'fasta' and customLength == False:
-            # read fasta
-            index_ = []
-            seq = []
-            with open(os.path.join(curPath, dataPath)) as f:
-                for line in f:
-                    if line.startswith('>'):
-                        tmp = line.replace('>', '')
-                        idx = tmp.replace('\n', '')
-                        index_.append(idx)
-                    else:
-                        seq.append(line.replace('\n', ''))
-            df = pd.DataFrame({'id':index_, 'seq': seq})
-        elif varType == 'fasta' and customLength:
-            index_ = []
-            seq = []
-            for seq_record in SeqIO.parse(os.path.join(curPath, dataPath), "fasta"):
-                index_.append(seq_record.id)
-                seq.append(str(seq_record.seq))
-            df = pd.DataFrame({'id':index_, 'seq': seq})
-        else:
-            df = pd.read_csv(os.path.join(curPath, dataPath), sep='\t')
-            if developer == False:
-                df.columns = ['id', 'seq']
+        taxonomy_lineage = self.get_lineage(varSpecies)
+
+        if dataType != 'fasta':
+            df = pd.read_csv(dataPath, sep='\t')
+            if labelled == False:
+                df.columns = ['id', 'species', 'seq']
             else:
-                df.columns = ['id', 'seq', 'label']
-        if customLength == True:
-            df = self.expand_df_seed(df, methyType, developer)
+                df.columns = ['id', 'seq', 'species', 'methy_type', 'label']
+        # generate a sequence of 6mer
         df['sequence_6mer'] = list(map(lambda x: self.seq2kmer(x, 6), df['seq']))
+        # mapping species name
+        if customSpecies == False:
+            species_mapped = pd.read_csv(f'{curPath}/data/taxonomy/species_name_mapped.csv')
+            species_mapped_dict = dict(zip(species_mapped['abbre_species'], species_mapped['full_species']))
+            df = df.rename(columns={'species': 'short_species'})
+            df['species'] = list(map(lambda x: species_mapped_dict[x], df['short_species']))
         description4sample = []
         for index, row in df.iterrows():
+            # generate taxonomy lineage according to species
+            species_ = row['species']
+            taxonomy_lineage = self.get_lineage(species_)
             desc = self.description_Creator(row, taxonomy_lineage)
             description4sample.append(desc)
         df['text'] = description4sample
-        if customLength == False:
-            if developer:
-                processed_df = df[['id', 'seq', 'text', 'label']]
-            else:
-                processed_df = df[['id', 'seq', 'text']]
+        if labelled:
+            processed_df = df[['id', 'text', 'label']]
         else:
-            if developer:
-                processed_df = df[['id', 'seed', 'seq', 'text', 'label']]
-            else:
-                processed_df = df[['id', 'seed', 'seq', 'text']]
+            processed_df = df[['id', 'seq', 'text']]
         return processed_df
 
     def predicted_data_loader(self, curPath, varSpecies, predictedPosDF, customSpecies=False, developer=False):
