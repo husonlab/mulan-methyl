@@ -96,8 +96,12 @@ After fine-tuning, using Mulan-Methyl to predict the methylation status on the D
     python code/main.py \
             --prediction \
             --input_file ./data/benchmark/processed_dataset/test/processed_6mA.tsv \
+            --labelled \
+            --data_type tsv \
+            --finetuned_output_dir ./pretrained_model \
             --multi_species \
             --species R.chinensis \
+            --prediction_output_dir ./prediction
 
 
 
