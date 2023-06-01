@@ -91,6 +91,13 @@ This command give an example of fine-tuning MuLan-Methyl for identifying 6mA met
 
 
 ### 4. Methylation status prediction
+After fine-tuning, using Mulan-Methyl to predict the methylation status on the DNA sequence. This command conduct 6mA methylation site prediction on R.chinensis.
+
+    python code/main.py \
+            --prediction \
+            --input_file ./data/benchmark/processed_dataset/test/processed_6mA.tsv \
+            --multi_species \
+            --species R.chinensis \
 
 
 
