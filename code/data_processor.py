@@ -87,24 +87,17 @@ class DataProcesser(object):
         return description
 
     def data_loader(self, dataPath, dataType, customSpecies=False, labelled=True):
-        if customSpecies == False:
-            species_mapped = pd.read_csv(f'{curPath}/data/taxonomy/species_name_mapped.csv')
-            species_mapped_dict = dict(zip(species_mapped['abbre_species'], species_mapped['full_species']))
-            # apply long species name to initial dataset
-            varSpecies = species_mapped_dict[varSpecies]
-        taxonomy_lineage = self.get_lineage(varSpecies)
-
         if dataType != 'fasta':
             df = pd.read_csv(dataPath, sep='\t')
             if labelled == False:
-                df.columns = ['id', 'species', 'seq']
+                df.columns = ['id', 'species', 'methyl_type', 'seq']
             else:
-                df.columns = ['id', 'seq', 'species', 'methy_type', 'label']
+                df.columns = ['id', 'seq', 'species', 'methyl_type', 'label']
         # generate a sequence of 6mer
         df['sequence_6mer'] = list(map(lambda x: self.seq2kmer(x, 6), df['seq']))
         # mapping species name
         if customSpecies == False:
-            species_mapped = pd.read_csv(f'{curPath}/data/taxonomy/species_name_mapped.csv')
+            species_mapped = pd.read_csv('./data/taxonomy/species_name_mapped.csv')
             species_mapped_dict = dict(zip(species_mapped['abbre_species'], species_mapped['full_species']))
             df = df.rename(columns={'species': 'short_species'})
             df['species'] = list(map(lambda x: species_mapped_dict[x], df['short_species']))
@@ -117,19 +110,48 @@ class DataProcesser(object):
             description4sample.append(desc)
         df['text'] = description4sample
         if labelled:
-            processed_df = df[['id', 'text', 'label']]
+            processed_df = df[['id', 'text', 'methyl_type', 'species', 'label']]
         else:
-            processed_df = df[['id', 'seq', 'text']]
+            processed_df = df[['id', 'text', 'methyl_type', 'species']]
         return processed_df
 
-    def predicted_data_loader(self, curPath, varSpecies, predictedPosDF, customSpecies=False, developer=False):
-        df = predictedPosDF
+    def data_loader_predict(self, dataPath, dataType, varSpecies, customSpecies=False, labelled=True):
+        '''
+        curPath: current path(project path)
+        dataPath: relative path of data
+        dataType: data type, fasta or txt
+        varSpecies: species that dataset belongs to
+        methyType: methylation site type, 6mA, 4mC or 5hmC
+        customSpecies: species is not belongs to iDNA-MS, H.sapiens for False, s__Homo sapiens for True
+        developer: the input data has label, for developer testing code
+        customLength: if the input length is longer than 41
+        return: dataset contains sentence
+        '''
         if customSpecies == False:
-            species_mapped = pd.read_csv(f'{curPath}/data/taxonomy/species_name_mapped.csv')
+            species_mapped = pd.read_csv('./data/taxonomy/species_name_mapped.csv')
             species_mapped_dict = dict(zip(species_mapped['abbre_species'], species_mapped['full_species']))
             # apply long species name to initial dataset
             varSpecies = species_mapped_dict[varSpecies]
-        taxonomy_lineage = self.get_lineage(varSpecies, curPath)
+        taxonomy_lineage = self.get_lineage(varSpecies)
+        if dataType == 'fasta':
+            # read fasta
+            index_ = []
+            seq = []
+            with open(os.path.join(curPath, dataPath)) as f:
+                for line in f:
+                    if line.startswith('>'):
+                        tmp = line.replace('>', '')
+                        idx = tmp.replace('\n', '')
+                        index_.append(idx)
+                    else:
+                        seq.append(line.replace('\n', ''))
+            df = pd.DataFrame({'id':index_, 'seq': seq})
+        else:
+            df = pd.read_csv(dataPath, sep='\t')
+            if labelled == False:
+                df.columns = ['id', 'seq']
+            else:
+                df.columns = ['id', 'seq', 'label']
         df['sequence_6mer'] = list(map(lambda x: self.seq2kmer(x, 6), df['seq']))
         description4sample = []
         for index, row in df.iterrows():
@@ -141,6 +163,7 @@ class DataProcesser(object):
         else:
             processed_df = df[['id', 'seq', 'text']]
         return processed_df
+
 
 
 
