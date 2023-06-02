@@ -16,7 +16,7 @@ Web service for MuLan-Methyl is present at: http://ab.cs.uni-tuebingen.de/softwa
 ![image](img/MuLan-Methyl_workflow.jpg) 
 
 ## Get started
-[[toc]]
+
 ### 1. Configuration
 Download MuLan-Methyl from the github repository.
     
