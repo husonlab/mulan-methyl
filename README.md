@@ -75,7 +75,11 @@ Input of MuLan-methyl is a sentence contains DNA seuqence and description of sam
             --input_file ./data/benchmark/example_data_processing/train.tsv \
             --data_type tsv \
             --labelled
-### 3. Fine-tuning
+
+### 3. Pretrained MuLan-Methyl
+The pretrained MuLan-Methyl contains five pretrained language model, which are available on [Hugging Face](https://huggingface.co/wenhuan).
+
+### 4. Fine-tuning
 MuLan-Methyl contains three methylation-site type-wise prediction models, where 6mA prediction model ensemble five transformer-based language model, each is fine-tuned on the corresponding pretrained language model, sub-models of 4mC prediction model is fine-tuned on the 6mA fine-tuned models, similarly, sub-models of 5hmC prediction model is fine-tuned on the 4mC fine-tuned models.
 
 Fine-tuning MuLan-Methyl for each methylation site by passing variable name 6mA, 4mC, 5hmC to argument methy_type, respectively.
@@ -90,7 +94,7 @@ This command give an example of fine-tuning MuLan-Methyl for identifying 6mA met
             --finetuned_output_dir ./pretrained_model
 
 
-### 4. Methylation status prediction
+### 5. Methylation status prediction
 After fine-tuning, using Mulan-Methyl to predict the methylation status on the DNA sequence. This command conduct 6mA methylation site prediction on R.chinensis.
 
     python code/main.py \
