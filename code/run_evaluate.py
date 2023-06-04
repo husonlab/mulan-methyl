@@ -20,11 +20,11 @@ logger = logging.getLogger(__name__)
 
 # Dataset generation
 class MethyDataset(Dataset):
-    def __init__(self, index, encodings, labels, developer=False):
+    def __init__(self, index, encodings, labels, labelled=False):
         self.index = index
         self.encodings = encodings
         self.labels = labels
-        self.developer = developer
+        self.developer = labelled
 
     # read sample
     def __getitem__(self, idx):
@@ -54,7 +54,7 @@ class RunEvaluate(object):
         return {"accuracy": acc, "f1": f1, "recall":recall, "precision":precision, "mcc":mcc, "auc":roc_auc, "aupr": aupr}
 
 
-    def predict_func(self, processed_df, methy_type, output_dir, finetuned_model_dir, labelled=False, multi_species=False, species=None):
+    def predict_func(self, processed_df, methy_type, output_dir, finetuned_model_dir, labelled=False, multi_species=False, data_processed=False, species=None):
         '''
         :param species: species name
         :param processed_df: processed dataset ['id', 'seq', 'text']
@@ -79,29 +79,29 @@ class RunEvaluate(object):
         else:
             test_label = None
         test_index = processed_df['id'].tolist()
-        model_list = ['xlnet', 'bert', 'distilbert', 'albert', 'electra']
+        model_list = ['XLNet', 'BERT', 'DistilBERT', 'ALBERT', 'ELECTRA']
         model_config = {
-            'distilbert': (DistilBertTokenizer, DistilBertForSequenceClassification),
-            'albert': (AutoTokenizer, AlbertForSequenceClassification),
-            'xlnet': (AutoTokenizer, XLNetForSequenceClassification),
-            'bert': (BertTokenizer, BertForSequenceClassification),
-            'electra': (ElectraTokenizer, ElectraForSequenceClassification)
+            'DistilBERT': (DistilBertTokenizer, DistilBertForSequenceClassification),
+            'ALBERT': (AutoTokenizer, AlbertForSequenceClassification),
+            'XLNet': (AutoTokenizer, XLNetForSequenceClassification),
+            'BERT': (BertTokenizer, BertForSequenceClassification),
+            'ELECTRA': (ElectraTokenizer, ElectraForSequenceClassification)
         }
         for model_ in model_list:
             tokenizer_type, model_type = model_config[model_]
             # load tokenizer
             tokenizer = tokenizer_type.from_pretrained(f'wenhuan/MuLan-Methyl-{model_}')
             # tokenizer
-            if model_ in ['albert', 'xlnet']:
+            if model_ in ['ALBERT', 'XLNet']:
                 test_encoding = tokenizer(x_test, truncation=True, padding=True, max_length=200, return_tensors='pt')
             else:
                 test_encoding = tokenizer(x_test, truncation=True, padding=True, max_length=100, return_tensors='pt')
-            testDataset = MethyDataset(test_index, test_encoding, test_label, developer)
+            testDataset = MethyDataset(test_index, test_encoding, test_label, labelled)
             # predict on test set
             model = model_type.from_pretrained(f'{finetuned_model_dir}/{model_}/{methy_type}/model', num_labels=2)
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             model.to(device)
-            if model_ == 'xlnet':
+            if model_ == 'XLNet':
                 try:
                     args = TrainingArguments(output_dir='tmp_trainer', per_device_eval_batch_size=64)
                     trainer = Trainer(args=args, model=model)
@@ -129,7 +129,7 @@ class RunEvaluate(object):
                 result = self.evaluation_metrics(preds, probs[:,1], labels)
                 res = str(model_) + ' '
                 with open(f'{log_path}/pred_record.txt', 'a') as writer:
-                    if model_ == 'xlnet':
+                    if model_ == 'XLNet':
                         header = 'model '
                         for key in sorted(result.keys()):
                             header = header + str(key) + ' '
@@ -137,7 +137,7 @@ class RunEvaluate(object):
                     for key in sorted(result.keys()):
                         res = res + str(result[key])[:7] + ' '
                     writer.write(res + '\n')
-            if model_ == 'xlnet':
+            if model_ == 'XLNet':
                 all_probs = deepcopy(probs)
                 cat_probs = deepcopy(probs)
             else:
@@ -158,10 +158,16 @@ class RunEvaluate(object):
                     jointRes = jointRes + str(ensemble_results[key])[:7] + ' '
                 writer.write(jointRes + '\n')
         MuLan_probs_df = pd.DataFrame({'prob_0': all_probs[:,0], 'prob_1': all_probs[:,1], 'pred_label': all_preds})
-        if labelled:
-            processed_df = pd.concat([processed_df[['id', 'seq', 'label']], MuLan_probs_df], axis=1)
+        if not data_processed:
+            if labelled:
+                processed_df = pd.concat([processed_df[['id', 'seq', 'label']], MuLan_probs_df], axis=1)
+            else:
+                processed_df = pd.concat([processed_df[['id', 'seq']], MuLan_probs_df], axis=1)
         else:
-            processed_df = pd.concat([processed_df[['id', 'seq']], MuLan_probs_df], axis=1)
+            if labelled:
+                processed_df = pd.concat([processed_df[['id', 'text', 'label']], MuLan_probs_df], axis=1)
+            else:
+                processed_df = pd.concat([processed_df[['id', 'text']], MuLan_probs_df], axis=1)
         return processed_df
 
 

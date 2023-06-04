@@ -86,11 +86,21 @@ class DataProcesser(object):
         description = f'{sentence4seq}. {sentence4tax}.'
         return description
 
+    def data_loader_processed(self, dataPath, customSpecies=False):
+        processed_df = pd.read_csv(dataPath, sep='\t')
+        processed_df['complete_species'] = list(map(lambda x: x.split('.')[1].split(',')[1].lstrip('its species is'), processed_df['text']))
+        processed_df['complete_species'] = list(map(lambda x: f's__{x}', processed_df['complete_species']))
+        if customSpecies == False:
+            species_mapped = pd.read_csv('./data/taxonomy/species_name_mapped.csv')
+            species_mapped_dict = dict(zip(species_mapped['full_species'], species_mapped['abbre_species']))
+            processed_df['species'] = list(map(lambda x: species_mapped_dict[x], processed_df['complete_species']))
+        return processed_df
+
     def data_loader(self, dataPath, dataType, customSpecies=False, labelled=True):
         if dataType != 'fasta':
             df = pd.read_csv(dataPath, sep='\t')
             if labelled == False:
-                df.columns = ['id', 'species', 'methyl_type', 'seq']
+                df.columns = ['id', 'seq', 'species', 'methyl_type']
             else:
                 df.columns = ['id', 'seq', 'species', 'methyl_type', 'label']
         # generate a sequence of 6mer
@@ -158,7 +168,7 @@ class DataProcesser(object):
             desc = self.description_Creator(row, taxonomy_lineage)
             description4sample.append(desc)
         df['text'] = description4sample
-        if developer:
+        if labelled:
             processed_df = df[['id', 'seq', 'text', 'label']]
         else:
             processed_df = df[['id', 'seq', 'text']]
