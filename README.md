@@ -100,6 +100,7 @@ After fine-tuning, using Mulan-Methyl to predict the methylation status on the D
     python code/main.py \
             --prediction \
             --input_file ./data/benchmark/processed_dataset/test/processed_6mA.tsv \
+            --data_processed \
             --methyl_type 6mA \
             --labelled \
             --data_type tsv \
