@@ -23,6 +23,7 @@ def create_parser():
     parser.add_argument('--finetune', action='store_true', help='True if fine tuning models')
     parser.add_argument('--model_list', default=False, required=False, nargs='+', help='the model name for fine-tuning')
     parser.add_argument('--finetuned_output_dir', default=False, required=False, help='dir for saving fine-tuning result')
+    parser.add_argument('--learning_rate', default=False, required=False, nargs='+', type=float, help='learning rate of corresponding model')
     # prediction
     parser.add_argument('--prediction', action='store_true', help='True if conduct prediction (after have finetuned models)')
     parser.add_argument('--multi_species', action='store_true', help='True if input dataset contains not only one species, then dataset should have species columns. If not then species column is not mandatory.')
@@ -38,7 +39,7 @@ def main():
     args = create_parser()
     if args.finetune:
         func = run_finetune.Finetune()
-        func._run_finetune(args.input_file, args.model_list, args.finetuned_output_dir, args.methyl_type)
+        func._run_finetune(args.input_file, args.model_list, args.finetuned_output_dir, args.methyl_type, args.learning_rate)
     elif args.data_proc:
         func_ = data_processor.DataProcesser()
         processed_df = func_.data_loader(args.input_file, args.data_type, args.custom_species, args.labelled)
