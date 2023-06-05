@@ -44,7 +44,7 @@ class Finetune(object):
             'BERT': (BertTokenizer, BertForSequenceClassification),
             'ELECTRA': (ElectraTokenizer, ElectraForSequenceClassification)
         }
-        if learning_rate is not None:
+        if learningRate is not None:
             lr_key = modelList
             lr_value = learningRate
         else:
