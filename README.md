@@ -91,6 +91,7 @@ This command give an example of fine-tuning MuLan-Methyl for identifying 6mA met
             --input_file ./data/benchmark/processed_dataset/train/processed_6mA.tsv \
             --methyl_type 6mA \
             --model_list BERT DistilBERT ALBERT XLNet ELECTRA \
+            --learning_rate 1e-5, 1e-5, 5e-5, 2e-5, 1e-5
             --finetuned_output_dir ./pretrained_model
 
 
