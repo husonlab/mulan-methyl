@@ -26,7 +26,7 @@ class MethyDataset(Dataset):
 
 class Finetune(object):
 
-    def _run_finetune(self, dataPath, modelList, outputDir, methylType):
+    def _run_finetune(self, dataPath, modelList, outputDir, methylType, learningRate=None):
         # read dataset
         mydf = pd.read_csv(dataPath, sep='\t')
         mydf['species'] = list(map(lambda x: x.split('.')[1].split(',')[1].lstrip('its species is'), mydf['text']))
@@ -44,6 +44,13 @@ class Finetune(object):
             'BERT': (BertTokenizer, BertForSequenceClassification),
             'ELECTRA': (ElectraTokenizer, ElectraForSequenceClassification)
         }
+        if learning_rate is not None:
+            lr_key = modelList
+            lr_value = learningRate
+        else:
+            lr_key = ['BERT', 'DistilBERT', 'ALBERT', 'XLNet', 'ELECTRA']
+            lr_value = [1e-5, 1e-5, 5e-5, 2e-5, 1e-5]
+        lr_dict = dict(zip(lr_key, lr_value))
         # process for each model in the model list
         for model_ in modelList:
             pretrained_model_path = f'wenhuan/MuLan-Methyl-{model_}'
@@ -74,14 +81,11 @@ class Finetune(object):
                     os.makedirs(obj)
             if model_ == 'ALBERT':
                 BATCH_SIZE = 96
-                LEARNING_RATE = 5e-5
-            elif model_ == 'BERT':
-                BATCH_SIZE = 64
-                LEARNING_RATE = 1e-5
+                WARMUP_STEPS = 1000
             else:
                 BATCH_SIZE = 64
-                LEARNING_RATE = 2e-4
-
+                WARMUP_STEPS = 100
+            LEARNING_RATE = lr_dict[model_]
             # define evaluation metrics
             def compute_metrics(pred):
                 labels = pred.label_ids
@@ -100,7 +104,7 @@ class Finetune(object):
                 num_train_epochs=32,              # total number of training epochs
                 per_device_train_batch_size=BATCH_SIZE,
                 per_device_eval_batch_size=BATCH_SIZE,
-                warmup_steps=1000,
+                warmup_steps=WARMUP_STEPS,
                 weight_decay=0.01,               # strength of weight decay
                 logging_dir=log_path,            # directory for storing logs
                 do_predict=True,
