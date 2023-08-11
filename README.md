@@ -114,4 +114,4 @@ After fine-tuning, using Mulan-Methyl to predict the methylation status on the D
 
 
 ## Publication 
-- Wenhuan Zeng, Anupam Gautam, Daniel H Huson. MuLan-Methyl—multiple transformer-based language models for accurate DNA methylation prediction, GigaScience, Volume 12, 2023, giad054, https://doi.org/10.1093/gigascience/giad054
+- Wenhuan Zeng, Anupam Gautam, Daniel H Huson. MuLan-Methyl—multiple transformer-based language models for accurate DNA methylation prediction, ***GigaScience***, Volume 12, 2023, giad054, https://doi.org/10.1093/gigascience/giad054
