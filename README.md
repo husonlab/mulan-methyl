@@ -1,7 +1,8 @@
 # MuLan-Methyl
 This is the repository to 'MuLan-Methyl - Multiple Transformer-based Language Models for Accurate DNA Methylation Prediction', contained resources including source code for implementing MuLan-Methyl fine-tuning procedure and prediction on custom dataset.
 
-Please kindly cite our paper if you use the model.
+Please kindly cite our paper if you use the model <a href="https://doi.org/10.1093/gigascience/giad054
+"_target="blank">Link</a>.
 
 
 ## Web service  
